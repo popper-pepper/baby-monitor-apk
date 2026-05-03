@@ -21,12 +21,7 @@ jobs:
         with:
           python-version: "3.8"
 
-      - name: 安装 Docker (Buildozer 需要)
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y docker.io
-          sudo systemctl start docker
-
+      # GitHub Actions 的 Ubuntu runner 预装了 Docker，无需额外安装
       - name: 使用 Buildozer 构建 APK（详细日志）
         run: |
           cd ${{ github.workspace }}

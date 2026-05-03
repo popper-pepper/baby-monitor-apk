@@ -22,7 +22,7 @@ jobs:
           python-version: "3.8"
 
       # GitHub Actions 的 Ubuntu runner 预装了 Docker，无需额外安装
-      - name: 使用 Buildozer 构建 APK（详细日志）
+      - name: 使用 Buildozer 构建 APK
         run: |
           cd ${{ github.workspace }}
           echo "=== 文件列表 ==="
@@ -30,13 +30,14 @@ jobs:
           echo "=== data/ 目录 ==="
           ls -la data/ || echo "data/ 目录不存在"
           echo "=== 开始构建 ==="
-          # 写入详细构建日志到文件
-          sudo docker run --rm \
+          # 使用 --network host 确保网络连接，yes 自动确认 root 提示
+          sudo docker run --rm --network host \
+            --entrypoint sh \
             --volume ${{ github.workspace }}:/home/user/hostcwd \
             --volume /home/runner/.buildozer:/home/user/.buildozer \
             --workdir /home/user/hostcwd \
             kivy/buildozer:latest \
-            buildozer --verbose android debug 2>&1 | tee build_output.log; exit_code=${PIPESTATUS[0]}; echo "=== 构建退出码: $exit_code ==="; exit $exit_code
+            -c "yes | buildozer --verbose android debug" 2>&1 | tee build_output.log; exit_code=${PIPESTATUS[0]}; echo "=== 构建退出码: $exit_code ==="; exit $exit_code
 
       - name: 上传构建日志
         if: always()

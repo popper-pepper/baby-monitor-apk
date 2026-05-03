@@ -28,30 +28,10 @@ jobs:
       - name: 使用 Buildozer 构建 APK
         run: |
           cd ${{ github.workspace }}
-          # 创建数据目录
-          mkdir -p data
-          # 生成默认图标 (1x1 透明 PNG)
-          python -c "
-import struct, zlib
-def create_png(width, height, color=(0,0,0,0)):
-    def chunk(ctype, data):
-        c = ctype + data
-        return struct.pack('>I', len(data)) + c + struct.pack('>I', zlib.crc32(c) & 0xffffffff)
-    sig = b'\\x89PNG\\r\\n\\x1a\\n'
-    ihdr = chunk(b'IHDR', struct.pack('>IIBBBBB', width, height, 8, 6, 0, 0, 0))
-    raw = b''
-    for y in range(height):
-        raw += b'\\x00'
-        for x in range(width):
-            raw += bytes(color)
-    idat = chunk(b'IDAT', zlib.compress(raw))
-    iend = chunk(b'IEND', b'')
-    return sig + ihdr + idat + iend
-with open('data/icon.png', 'wb') as f:
-    f.write(create_png(256, 256, (15,15,26,255)))
-print('图标已生成')
-"
-          # 使用 Docker 运行 Buildozer
+          # data/icon.png 已提交到仓库，无需重新生成
+          echo "文件列表:"
+          ls -la data/
+          echo "---"
           sudo docker run --interactive --tty --rm \
             --volume ${{ github.workspace }}:/home/user/hostcwd \
             --volume ~/.buildozer:/home/user/.buildozer \

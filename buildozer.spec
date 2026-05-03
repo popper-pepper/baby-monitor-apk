@@ -25,11 +25,12 @@ icon = data/icon.png
 
 # ── Android 配置 ──
 
-android.api = 31
+android.api = 34
 android.ndk = 25b
-android.sdk = 31
+android.sdk = 34
 android.minapi = 21
 android.gradle_dependencies = androidx.core:core:1.9.0
+android.gradle_plugin_version = 8.1.0
 
 # 权限
 android.permissions = INTERNET, ACCESS_NETWORK_STATE, ACCESS_WIFI_STATE, FOREGROUND_SERVICE, WAKE_LOCK, RECEIVE_BOOT_COMPLETED

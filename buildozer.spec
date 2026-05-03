@@ -41,7 +41,7 @@ android.orientation = portrait
 android.add_src =
 
 # ARM 架构（兼容性更好）
-android.arch = arm64-v8a,armeabi-v7a
+android.archs = arm64-v8a,armeabi-v7a
 
 # 启用日志
 android.logcat_filters = *:S python:D

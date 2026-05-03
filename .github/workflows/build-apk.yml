@@ -10,6 +10,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
     steps:
       - name: 检出代码
         uses: actions/checkout@v4
@@ -25,19 +27,30 @@ jobs:
           sudo apt-get install -y docker.io
           sudo systemctl start docker
 
-      - name: 使用 Buildozer 构建 APK
+      - name: 使用 Buildozer 构建 APK（详细日志）
         run: |
           cd ${{ github.workspace }}
-          # data/icon.png 已提交到仓库，无需重新生成
-          echo "文件列表:"
-          ls -la data/
-          echo "---"
+          echo "=== 文件列表 ==="
+          ls -la
+          echo "=== data/ 目录 ==="
+          ls -la data/ || echo "data/ 目录不存在"
+          echo "=== 开始构建 ==="
+          # 写入详细构建日志到文件
           sudo docker run --interactive --tty --rm \
             --volume ${{ github.workspace }}:/home/user/hostcwd \
-            --volume ~/.buildozer:/home/user/.buildozer \
+            --volume /home/runner/.buildozer:/home/user/.buildozer \
             --workdir /home/user/hostcwd \
             kivy/buildozer:latest \
-            buildozer android debug
+            buildozer --verbose android debug 2>&1 | tee build_output.log; exit_code=${PIPESTATUS[0]}; echo "=== 构建退出码: $exit_code ==="; exit $exit_code
+
+      - name: 上传构建日志
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output-log
+          path: ${{ github.workspace }}/build_output.log
+          retention-days: 7
+          if-no-files-found: warn
 
       - name: 上传 APK
         uses: actions/upload-artifact@v4
@@ -49,10 +62,4 @@ jobs:
           retention-days: 30
           if-no-files-found: error
 
-      - name: 上传构建日志（如果失败）
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: buildozer-logs
-          path: ${{ github.workspace }}/.buildozer/**/*.log
-          retention-days: 7
+

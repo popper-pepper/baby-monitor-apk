@@ -1,0 +1,78 @@
+name: 构建 APK
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:  # 支持手动触发
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 设置 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.8"
+
+      - name: 安装 Docker (Buildozer 需要)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker.io
+          sudo systemctl start docker
+
+      - name: 使用 Buildozer 构建 APK
+        run: |
+          cd ${{ github.workspace }}
+          # 创建数据目录
+          mkdir -p data
+          # 生成默认图标 (1x1 透明 PNG)
+          python -c "
+import struct, zlib
+def create_png(width, height, color=(0,0,0,0)):
+    def chunk(ctype, data):
+        c = ctype + data
+        return struct.pack('>I', len(data)) + c + struct.pack('>I', zlib.crc32(c) & 0xffffffff)
+    sig = b'\\x89PNG\\r\\n\\x1a\\n'
+    ihdr = chunk(b'IHDR', struct.pack('>IIBBBBB', width, height, 8, 6, 0, 0, 0))
+    raw = b''
+    for y in range(height):
+        raw += b'\\x00'
+        for x in range(width):
+            raw += bytes(color)
+    idat = chunk(b'IDAT', zlib.compress(raw))
+    iend = chunk(b'IEND', b'')
+    return sig + ihdr + idat + iend
+with open('data/icon.png', 'wb') as f:
+    f.write(create_png(256, 256, (15,15,26,255)))
+print('图标已生成')
+"
+          # 使用 Docker 运行 Buildozer
+          sudo docker run --interactive --tty --rm \
+            --volume ${{ github.workspace }}:/home/user/hostcwd \
+            --volume ~/.buildozer:/home/user/.buildozer \
+            --workdir /home/user/hostcwd \
+            kivy/buildozer:latest \
+            buildozer android debug
+
+      - name: 上传 APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: baby-monitor-apk
+          path: |
+            ${{ github.workspace }}/bin/*.apk
+            ${{ github.workspace }}/*.apk
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: 上传构建日志（如果失败）
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: buildozer-logs
+          path: ${{ github.workspace }}/.buildozer/**/*.log
+          retention-days: 7

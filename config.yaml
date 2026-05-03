@@ -1,0 +1,63 @@
+# 婴儿看护系统 - Android 默认配置
+# 此文件会被复制到手机内部存储，可以手动修改
+
+camera:
+  # IP Webcam 服务器地址
+  # 如果 APK 和 IP Webcam 在同一个手机上，用 127.0.0.1
+  # 如果 IP Webcam 在另一台手机上，填那台手机的 IP
+  host: "127.0.0.1"
+  port: 8080
+  snapshot_path: "/shot.jpg"
+
+motion:
+  # 拍照间隔（秒）
+  interval: 1.0
+
+  # 运动灵敏度（越小越敏感，3000-5000 推荐）
+  sensitivity: 3000
+
+  # 连续检测到运动的帧数达到此值时触发通知
+  trigger_frames: 3
+
+  # 触发通知后的冷却时间（秒）
+  cooldown: 30
+
+  # 高斯模糊核大小（奇数）
+  blur_ksize: 21
+
+  # 帧差法二值化阈值（0-255）
+  threshold: 25
+
+notification:
+  # Server酱 推送密钥（必填）
+  # 注册地址：https://sct.ftqq.com
+  server_chan_key: "SCT344962TegbWZzactldEDGV9SZbPwjAn"
+
+  # 通知标题
+  title: "婴儿看护 - 检测到活动"
+
+  # 是否在通知中附带现场图片
+  send_image: true
+
+image_hosting:
+  # 图床服务提供商: "smms" / "imgbb" / "none"
+  provider: "imgbb"
+
+  # SM.MS Token（可选）
+  smms_token: ""
+
+  # ImgBB API Key
+  imgbb_api_key: "eb06f521bc79019713209a8783471631"
+
+web_server:
+  # Flask Web 控制面板
+  host: "0.0.0.0"
+  port: 5000
+  frame_interval: 0.3
+
+display:
+  show_window: false
+
+save:
+  save_motion_frames: true
+  output_dir: "captures"
